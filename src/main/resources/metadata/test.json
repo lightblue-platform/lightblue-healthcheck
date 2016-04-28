@@ -1,0 +1,61 @@
+{
+    "entityInfo": {
+        "datastore": {
+            "backend": "mongo",
+            "collection": "test",
+            "datasource": "mongodata"
+        },
+        "name": "test",
+        "defaultVersion": "0.0.1-SNAPSHOT"
+    },
+    "schema": {
+        "name": "test",
+        "status": {
+            "value": "active"
+        },
+        "version": {
+            "changelog": "First cut lbTest",
+            "value": "0.0.1-SNAPSHOT"
+        },
+        "access": {
+            "delete": [
+                "lb-test-delete"
+            ],
+            "find": [
+                "lb-test-find"
+            ],
+            "insert": [
+                "lb-test-insert"
+            ],
+            "update": [
+                "lb-test-update"
+            ]
+        },
+        "fields": {
+            "_id": {
+                "type": "string",
+                "valueGenerator": {
+                    "type": "UUID"
+                }
+            },
+            "hostname": {
+                "constraints": {
+                    "required": true
+                },
+                "type": "string"
+            },
+            "value": {
+                "type": "string"
+            },
+            "creationDate": {
+                "constraints": {
+                    "required": true
+                },
+                "type": "date",
+                "valueGenerator": {
+                    "type": "CurrentTime"
+                }
+            }
+        }
+    }
+}
