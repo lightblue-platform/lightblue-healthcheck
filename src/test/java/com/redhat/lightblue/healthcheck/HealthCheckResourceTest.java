@@ -13,14 +13,18 @@ import java.nio.charset.Charset;
 import org.apache.commons.io.IOUtils;
 import org.jboss.resteasy.plugins.server.sun.http.HttpContextBuilder;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.client.http.HttpMethod;
 import com.redhat.lightblue.client.integration.test.LightblueExternalResource;
 import com.redhat.lightblue.client.integration.test.LightblueExternalResource.LightblueTestMethods;
+import com.redhat.lightblue.rest.integration.LightblueRestTestHarness;
 import com.sun.net.httpserver.HttpServer;
 
 public class HealthCheckResourceTest {
@@ -28,6 +32,9 @@ public class HealthCheckResourceTest {
     private final static int DEFAULT_PORT = 7000;
 
     private static HttpServer httpServer;
+
+    @Rule
+    public ExpectedException expectedEx = ExpectedException.none();
 
     @ClassRule
     public static LightblueExternalResource lightblue = new LightblueExternalResource(new LightblueTestMethods() {
@@ -60,9 +67,9 @@ public class HealthCheckResourceTest {
         httpServer = null;
     }
 
-    public HealthCheckResourceTest() {
-        //called here so that the internal controller is initialized.
-        lightblue.getLightblueClient();
+    @Before
+    public void setup() throws Exception {
+        lightblue.ensureHttpServerIsRunning();
     }
 
     private HttpURLConnection openConnection(String uri) throws IOException {
@@ -99,12 +106,26 @@ public class HealthCheckResourceTest {
     }
 
     @Test
-    public void testCheck() throws IOException {
+    public void testCheckSuccess() throws IOException {
         HttpURLConnection connection = openConnection("http://localhost:" + DEFAULT_PORT + "/rest/test/healthcheck/check");
         String r = response(connection);
         connection.disconnect();
 
-        assertEquals("hi", r);
+        assertEquals("{\"status\":\"success\"}", r);
+    }
+
+    @Test
+    public void testCheckFailure_LbIsDown() throws IOException {
+        expectedEx.expect(IOException.class);
+        expectedEx.expectMessage("Server returned HTTP response code: 500");
+
+        LightblueRestTestHarness.stopHttpServer();
+
+        HttpURLConnection connection = openConnection("http://localhost:" + DEFAULT_PORT + "/rest/test/healthcheck/check");
+        String r = response(connection);
+        connection.disconnect();
+
+        assertEquals("{\"status\":\"failure\"}", r);
     }
 
 }
