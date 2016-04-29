@@ -1,23 +1,26 @@
 language: java
 jdk:
-    - oraclejdk8
+- oraclejdk8
 sudo: false
 before_install:
-    - cp ./etc/settings.xml ~/.m2/
-    - cp ./etc/onFailure.sh  ~/
-    - cp ./etc/onSuccess.sh  ~/
-    - chmod 777 ~/onFailure.sh
-    - chmod 777 ~/onSuccess.sh
+- cp ./etc/settings.xml ~/.m2/
+- cp ./etc/onFailure.sh  ~/
+- cp ./etc/onSuccess.sh  ~/
+- chmod 777 ~/onFailure.sh
+- chmod 777 ~/onSuccess.sh
 script:
-    - mvn -B clean verify
+- mvn -B clean verify
 after_failure: ~/onFailure.sh
 after_success: ~/onSuccess.sh
 after_script:
-    - mvn -B cobertura:cobertura coveralls:report
+- mvn -B cobertura:cobertura coveralls:report
 notifications:
-    email: false
-    irc:
-        channels:
-            - chat.freenode.net#lightblue
-    on_success: always
-sudo: false
+  email: false
+  irc:
+    channels:
+    - chat.freenode.net#lightblue
+  on_success: always
+env:
+  global:
+  - secure: Eql5miM+BWYRxL4jnyipaWl324+uAs+1dDAfzGsJbrjgQtmoMQwPaMKwvDQi/bx3QBukZvjgS4k29IkEYVn30Re3Lm3n0iF/PcXHVDbTyXpVrVejwFCEak2pBnCb/HM0ByVd4K2XvBo3+BFtzWCh4tFCOf/MpykC57DtM9sOIkS0IxLxvbRPr6q4GP3mlkIA3PSRL2z8pNNmd5yjjHpzMhdO1ZPpyZr5BEjDr/0M7gpNRciaaesrOAOs6Ef2TK6bGQ6aJ4Bkx8xnylWICpunEPnERaYo3Gfe7Mm8mPLu3ZMeK6i3R6bZfpItNmJw655g7s4NcXJGGbEF2TutfkfgII6GRAkB4Wy6C5DYuqKWcMUHJSALoYC2toFT7y/wTyejT2NJS3rQYHTeU8/+TdgaUZk+g5L6eaM82eXGliXhE0ap7gsTbcar+aM5YjEILm7dvCxQQShf7VA3+Hk5X7sSGYNKpfDwnwpVCCRvO++quwVZtYTdw9xAqgqj94fXD2k0LY4Ox7yznq7sbZYWHfBgUSI71RA/6swXmAVyEJYA+grYk8Th0GftC7FUeaxNplP5V62ilCfVf2FxBp4xASEIO1WnV/TDHqmBYjOta0tZb40ps77E2V1lkg7pizlGIt+DqY/MPQeYjESUhy7mjow9bbd9OXeUDNLDPNECIchqxZ8=
+  - secure: XG3iHlVAhcowDt66/sqI4GMBCA0f4/guVhHfmqFwH9JUl4ie88x3TGYivVktdfJK7QvzT0Mf2Yle5VfwblplORo9ejxm4Ev/ZLrd+v0obZuTCSWg0i7LF+fmojTbDxAqoMY6tNg4OXT+R16qzVS7UbPkgK702uk6bVz53C1N25+Tp0cd1PO+FIO8YqxKMJhpHf1nA+cwIsjwvxG9kLTK0RPlAIvCbwD9gGSqt/IsYuq+X9Lkj2wlJ+VxcaajN2xLhTljOUyMPjidjlj90KyaalOZUjrAA8BbWnHzXscOYbkLALK4+D8P9SQPbS2icm1h06shQYop3tzMM4OELtb7vA99phzK8u2uTkti4iVKln061tjbztfU3PBWp5k6C2ZYWc3gZggv7wv5eBN2KW3K6nPZGQ48nVIOe31B3lwzzhZgzLP6PnkGRYP82YULOFjujx6q8HOFsLc+Gxsij/z5P6ywi5NWhzDTk3LzcKqqlrOO+tuU4fVla3b3pm8bTKj/Y5LiKQL7OZtGoR78nyjwRhQmBzDw0yxe5kcqBe04NhSYftl9FUcbx/lqsM+hFpHkfIGrOkmMhIQlZQZXiz/dAynEbWwFRUFdr25fDboEPAGFShIJNColAB1/R0mEewjKmZQeS68AEmrdPflVGxEdKzXFosvwzBTU1XtYzpo3TGE=
