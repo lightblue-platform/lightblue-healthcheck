@@ -2,7 +2,7 @@
 <jboss-deployment-structure>
     <deployment>
         <dependencies>
-            <module name="com.redhat.lightblue.healthcheck"/>
+            <module name="com.redhat.lightblue.client.healthcheck"/>
         </dependencies>
     </deployment>
 </jboss-deployment-structure>
