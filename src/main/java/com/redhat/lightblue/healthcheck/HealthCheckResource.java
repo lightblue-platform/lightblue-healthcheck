@@ -31,7 +31,7 @@ import com.redhat.lightblue.healthcheck.model.Test;
 
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Path("/healthcheck")
+@Path("/")
 public class HealthCheckResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HealthCheckResource.class);
@@ -47,8 +47,8 @@ public class HealthCheckResource {
     }
 
     @GET
-    @Path("/check")
-    public Response check() {
+    @Path("/health")
+    public Response health() {
         try {
             DataInsertRequest insertRequest = new DataInsertRequest(ENTITY);
             insertRequest.returns(Projection.includeField("_id"));
