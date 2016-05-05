@@ -107,7 +107,7 @@ public class HealthCheckResourceTest {
 
     @Test
     public void testCheckSuccess() throws IOException {
-        HttpURLConnection connection = openConnection("http://localhost:" + DEFAULT_PORT + "/rest/test/healthcheck/check");
+        HttpURLConnection connection = openConnection("http://localhost:" + DEFAULT_PORT + "/rest/test/health");
         String r = response(connection);
         connection.disconnect();
 
@@ -121,7 +121,7 @@ public class HealthCheckResourceTest {
 
         LightblueRestTestHarness.stopHttpServer();
 
-        HttpURLConnection connection = openConnection("http://localhost:" + DEFAULT_PORT + "/rest/test/healthcheck/check");
+        HttpURLConnection connection = openConnection("http://localhost:" + DEFAULT_PORT + "/rest/test/health");
         String r = response(connection);
         connection.disconnect();
 
