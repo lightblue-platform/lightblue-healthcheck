@@ -16,9 +16,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.client.http.HttpMethod;
@@ -32,9 +30,6 @@ public class HealthCheckResourceTest {
     private final static int DEFAULT_PORT = 7000;
 
     private static HttpServer httpServer;
-
-    @Rule
-    public ExpectedException expectedEx = ExpectedException.none();
 
     @ClassRule
     public static LightblueExternalResource lightblue = new LightblueExternalResource(new LightblueTestMethods() {
@@ -87,6 +82,9 @@ public class HealthCheckResourceTest {
         try (InputStream responseStream = connection.getInputStream()) {
             return readResponseStream(responseStream, connection);
         }
+        catch (IOException e) {
+            return readResponseStream(connection.getErrorStream(), connection);
+        }
     }
 
     private String readResponseStream(InputStream responseStream, HttpURLConnection connection) throws IOException {
@@ -116,16 +114,13 @@ public class HealthCheckResourceTest {
 
     @Test
     public void testCheckFailure_LbIsDown() throws IOException {
-        expectedEx.expect(IOException.class);
-        expectedEx.expectMessage("Server returned HTTP response code: 500");
-
         LightblueRestTestHarness.stopHttpServer();
 
         HttpURLConnection connection = openConnection("http://localhost:" + DEFAULT_PORT + "/rest/test/health");
         String r = response(connection);
         connection.disconnect();
 
-        assertEquals("{\"status\":\"failure\"}", r);
+        assertEquals("{\"status\":\"error\",\"message\":\"java.net.ConnectException: Connection refused\"}", r);
     }
 
 }
