@@ -25,6 +25,19 @@ import javax.ws.rs.core.Application;
 
 public class HealthCheckResourceApplication extends Application {
 
+    static {
+        javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(
+            new javax.net.ssl.HostnameVerifier() {
+
+                @Override
+                public boolean verify(String hostname, javax.net.ssl.SSLSession sslSession) {
+                    return true;
+                }
+                
+            }
+        );
+    }
+
     @Override
     public Set<Class<?>> getClasses() {
         HashSet<Class<?>> set = new HashSet<>();
