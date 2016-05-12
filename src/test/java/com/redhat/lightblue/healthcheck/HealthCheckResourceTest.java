@@ -67,8 +67,8 @@ public class HealthCheckResourceTest {
         lightblue.ensureHttpServerIsRunning();
     }
 
-    private HttpURLConnection openConnection(String uri) throws IOException {
-        URL url = new URL(uri);
+    private HttpURLConnection openConnection() throws IOException {
+        URL url = new URL("http://localhost:" + DEFAULT_PORT + "/rest/test/health");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
         connection.setRequestMethod(HttpMethod.GET.name());
@@ -84,6 +84,9 @@ public class HealthCheckResourceTest {
         }
         catch (IOException e) {
             return readResponseStream(connection.getErrorStream(), connection);
+        }
+        finally{
+            connection.disconnect();
         }
     }
 
@@ -105,9 +108,7 @@ public class HealthCheckResourceTest {
 
     @Test
     public void testCheckSuccess() throws IOException {
-        HttpURLConnection connection = openConnection("http://localhost:" + DEFAULT_PORT + "/rest/test/health");
-        String r = response(connection);
-        connection.disconnect();
+        String r = response(openConnection());
 
         assertEquals("{\"status\":\"success\"}", r);
     }
@@ -116,9 +117,7 @@ public class HealthCheckResourceTest {
     public void testCheckFailure_LbIsDown() throws IOException {
         LightblueRestTestHarness.stopHttpServer();
 
-        HttpURLConnection connection = openConnection("http://localhost:" + DEFAULT_PORT + "/rest/test/health");
-        String r = response(connection);
-        connection.disconnect();
+        String r = response(openConnection());
 
         assertEquals("{\"status\":\"error\",\"message\":\"java.net.ConnectException: Connection refused\"}", r);
     }
