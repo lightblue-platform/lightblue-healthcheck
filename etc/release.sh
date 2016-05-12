@@ -56,6 +56,3 @@ git add pom.xml **/pom.xml
 git commit -m "Updated to latest snapshot dependencies"
 git push origin master
 
-# deploy updated snapshots
-mvn clean deploy
-
