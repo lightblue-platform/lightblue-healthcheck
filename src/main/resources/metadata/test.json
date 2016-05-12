@@ -6,7 +6,7 @@
             "datasource": "mongodata"
         },
         "name": "test",
-        "defaultVersion": "0.0.1-SNAPSHOT"
+        "defaultVersion": "1.0.0"
     },
     "schema": {
         "name": "test",
@@ -15,7 +15,7 @@
         },
         "version": {
             "changelog": "First cut lbTest",
-            "value": "0.0.1-SNAPSHOT"
+            "value": "1.0.0"
         },
         "access": {
             "delete": [
