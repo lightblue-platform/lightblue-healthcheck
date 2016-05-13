@@ -86,7 +86,7 @@ public class HealthCheckResource {
             LOGGER.debug("Health check passed.");
             return Response.status(Status.OK).entity(
                     "{\"status\":\"success\"}").build();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             LOGGER.error("Health check failed.", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
                     "{\"status\":\"error\",\"message\":\"" + e.getMessage() + "\"}").build();
