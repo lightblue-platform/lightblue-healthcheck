@@ -59,7 +59,7 @@ public class HealthCheckResource {
             String uuid = created.get_id();
             assertNotNull(uuid);
 
-            Test found = find("_id", uuid);
+            Test found = find(uuid);
 
             assertNotNull(found);
             assertEquals(hostname, found.getHostname());
@@ -71,7 +71,7 @@ public class HealthCheckResource {
             updateRequest.updates(Update.set("value", "updated"));
             client.data(updateRequest);
 
-            found = find("hostname", hostname);
+            found = find(uuid);
 
             assertNotNull(found);
             assertEquals(hostname, found.getHostname());
@@ -81,7 +81,7 @@ public class HealthCheckResource {
             deleteRequest.where(Query.withValue("_id", Query.eq, uuid));
             client.data(deleteRequest);
 
-            assertNull(find("_id", uuid));
+            assertNull(find(uuid));
 
             LOGGER.debug("Health check passed.");
             return Response.status(Status.OK).entity(
@@ -93,10 +93,10 @@ public class HealthCheckResource {
         }
     }
 
-    private Test find(String field, String uuid) throws LightblueException {
+    private Test find(String uuid) throws LightblueException {
         DataFindRequest findRequest = new DataFindRequest(ENTITY);
         findRequest.select(Projection.includeFieldRecursively("*"));
-        findRequest.where(Query.withValue(field, Query.eq, uuid));
+        findRequest.where(Query.withValue("_id", Query.eq, uuid));
         return client.data(findRequest, Test.class);
     }
 
