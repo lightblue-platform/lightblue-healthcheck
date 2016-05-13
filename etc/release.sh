@@ -52,7 +52,7 @@ mvn release:perform -P release || exit
 
 # update to latest lightblue snapshot dependencies
 mvn versions:use-latest-snapshots versions:update-properties -Dincludes=*lightblue* -DallowSnapshots=true
-git add pom.xml **/pom.xml
+git add `find -name pom.xml | grep -v target`
 git commit -m "Updated to latest snapshot dependencies"
 git push origin master
 
