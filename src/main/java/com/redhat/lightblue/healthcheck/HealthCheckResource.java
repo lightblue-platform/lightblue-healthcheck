@@ -5,6 +5,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.net.InetAddress;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -78,7 +81,17 @@ public class HealthCheckResource {
             assertEquals("updated", found.getValue());
 
             DataDeleteRequest deleteRequest = new DataDeleteRequest(ENTITY);
-            deleteRequest.where(Query.withValue("_id", Query.eq, uuid));
+            deleteRequest.where(
+                Query.or(
+                    Query.withValue("_id", Query.eq, uuid),
+                    Query.withValue("creationDate", Query.lte,
+                            Date.from(LocalDateTime
+                                    .now()
+                                    .minusDays(1)
+                                    .atZone(ZoneId.systemDefault())
+                                    .toInstant()))
+                )
+            );
             client.data(deleteRequest);
 
             assertNull(find(uuid));
