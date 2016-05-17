@@ -4,6 +4,8 @@ import java.util.Date;
 
 public class Test {
 
+    public final static String ENTITY_NAME = "test";
+
     private String _id;
     private String hostname;
     private String value;
