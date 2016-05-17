@@ -17,6 +17,8 @@ import javax.ws.rs.core.Response.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.redhat.lightblue.client.Execution;
+import com.redhat.lightblue.client.Execution.MongoController.ReadPreference;
 import com.redhat.lightblue.client.LightblueClient;
 import com.redhat.lightblue.client.LightblueException;
 import com.redhat.lightblue.client.Projection;
@@ -97,6 +99,7 @@ public class HealthCheckResource {
         DataFindRequest findRequest = new DataFindRequest(ENTITY);
         findRequest.select(Projection.includeFieldRecursively("*"));
         findRequest.where(Query.withValue("_id", Query.eq, uuid));
+        findRequest.execution(Execution.MongoController.withReadPreference(ReadPreference.primary));
         return client.data(findRequest, Test.class);
     }
 
