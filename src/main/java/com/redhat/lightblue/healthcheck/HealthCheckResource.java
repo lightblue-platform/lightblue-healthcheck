@@ -87,7 +87,7 @@ public class HealthCheckResource {
                     Query.withValue("creationDate", Query.lte,
                             Date.from(LocalDateTime
                                     .now()
-                                    .minusDays(1)
+                                    .minusMinutes(5)
                                     .atZone(ZoneId.systemDefault())
                                     .toInstant()))
                 )
