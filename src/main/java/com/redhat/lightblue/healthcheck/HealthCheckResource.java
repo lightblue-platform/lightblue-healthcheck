@@ -30,6 +30,9 @@ import com.redhat.lightblue.client.request.data.DataDeleteRequest;
 import com.redhat.lightblue.client.request.data.DataFindRequest;
 import com.redhat.lightblue.client.request.data.DataInsertRequest;
 import com.redhat.lightblue.client.request.data.DataUpdateRequest;
+import com.redhat.lightblue.client.request.execution.Execution;
+import com.redhat.lightblue.client.request.execution.MongoExecution;
+import com.redhat.lightblue.client.request.execution.MongoExecution.ReadPreference;
 import com.redhat.lightblue.healthcheck.model.Test;
 
 @Produces(MediaType.APPLICATION_JSON)
@@ -110,6 +113,7 @@ public class HealthCheckResource {
         DataFindRequest findRequest = new DataFindRequest(ENTITY);
         findRequest.select(Projection.includeFieldRecursively("*"));
         findRequest.where(Query.withValue("_id", Query.eq, uuid));
+        findRequest.execution(MongoExecution.withReadPreference(ReadPreference.primary));
         return client.data(findRequest, Test.class);
     }
 
