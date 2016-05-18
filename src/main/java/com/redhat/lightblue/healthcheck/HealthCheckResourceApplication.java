@@ -27,14 +27,14 @@ public class HealthCheckResourceApplication extends Application {
 
     static {
         javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(
-            new javax.net.ssl.HostnameVerifier() {
+                new javax.net.ssl.HostnameVerifier() {
 
-                @Override
-                public boolean verify(String hostname, javax.net.ssl.SSLSession sslSession) {
-                    return true;
-                }
-                
+            @Override
+            public boolean verify(String hostname, javax.net.ssl.SSLSession sslSession) {
+                return true;
             }
+
+        }
         );
     }
 

@@ -9,7 +9,8 @@ public class Test {
     private String value;
     private Date creationDate;
 
-    public Test() {}
+    public Test() {
+    }
 
     public Test(String hostname, String value) {
         this.hostname = hostname;

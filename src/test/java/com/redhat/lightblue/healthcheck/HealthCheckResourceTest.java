@@ -37,7 +37,7 @@ public class HealthCheckResourceTest {
         @Override
         public JsonNode[] getMetadataJsonNodes() throws Exception {
             return new JsonNode[]{
-                    loadJsonNode("metadata/test.json")
+                loadJsonNode("metadata/test.json")
             };
         }
     });
@@ -81,11 +81,9 @@ public class HealthCheckResourceTest {
     private String response(HttpURLConnection connection) throws IOException {
         try (InputStream responseStream = connection.getInputStream()) {
             return readResponseStream(responseStream, connection);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             return readResponseStream(connection.getErrorStream(), connection);
-        }
-        finally{
+        } finally {
             connection.disconnect();
         }
     }
