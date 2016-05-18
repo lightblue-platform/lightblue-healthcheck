@@ -17,8 +17,6 @@ import javax.ws.rs.core.Response.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.redhat.lightblue.client.Execution;
-import com.redhat.lightblue.client.Execution.MongoController.ReadPreference;
 import com.redhat.lightblue.client.LightblueClient;
 import com.redhat.lightblue.client.LightblueException;
 import com.redhat.lightblue.client.Projection;
@@ -29,6 +27,9 @@ import com.redhat.lightblue.client.request.data.DataDeleteRequest;
 import com.redhat.lightblue.client.request.data.DataFindRequest;
 import com.redhat.lightblue.client.request.data.DataInsertRequest;
 import com.redhat.lightblue.client.request.data.DataUpdateRequest;
+import com.redhat.lightblue.client.request.execution.Execution;
+import com.redhat.lightblue.client.request.execution.MongoExecution;
+import com.redhat.lightblue.client.request.execution.MongoExecution.ReadPreference;
 import com.redhat.lightblue.healthcheck.model.Test;
 
 @Produces(MediaType.APPLICATION_JSON)
@@ -99,7 +100,7 @@ public class HealthCheckResource {
         DataFindRequest findRequest = new DataFindRequest(ENTITY);
         findRequest.select(Projection.includeFieldRecursively("*"));
         findRequest.where(Query.withValue("_id", Query.eq, uuid));
-        findRequest.execution(Execution.MongoController.withReadPreference(ReadPreference.primary));
+        findRequest.execution(MongoExecution.withReadPreference(ReadPreference.primary));
         return client.data(findRequest, Test.class);
     }
 
