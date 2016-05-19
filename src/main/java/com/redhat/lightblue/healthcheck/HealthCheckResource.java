@@ -20,19 +20,19 @@ import javax.ws.rs.core.Response.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.redhat.lightblue.client.Execution;
 import com.redhat.lightblue.client.LightblueClient;
 import com.redhat.lightblue.client.LightblueException;
+import com.redhat.lightblue.client.MongoExecution;
 import com.redhat.lightblue.client.Projection;
 import com.redhat.lightblue.client.Query;
 import com.redhat.lightblue.client.Update;
+import com.redhat.lightblue.client.MongoExecution.ReadPreference;
 import com.redhat.lightblue.client.http.LightblueHttpClient;
 import com.redhat.lightblue.client.request.data.DataDeleteRequest;
 import com.redhat.lightblue.client.request.data.DataFindRequest;
 import com.redhat.lightblue.client.request.data.DataInsertRequest;
 import com.redhat.lightblue.client.request.data.DataUpdateRequest;
-import com.redhat.lightblue.client.request.execution.Execution;
-import com.redhat.lightblue.client.request.execution.MongoExecution;
-import com.redhat.lightblue.client.request.execution.MongoExecution.ReadPreference;
 import com.redhat.lightblue.healthcheck.model.Test;
 
 @Produces(MediaType.APPLICATION_JSON)
