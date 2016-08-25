@@ -1,9 +1,22 @@
 package com.redhat.lightblue.healthcheck;
 
-import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadJsonNode;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.redhat.lightblue.client.Projection;
+import com.redhat.lightblue.client.Query;
+import com.redhat.lightblue.client.http.HttpMethod;
+import com.redhat.lightblue.client.integration.test.LightblueExternalResource;
+import com.redhat.lightblue.client.integration.test.LightblueExternalResource.LightblueTestMethods;
+import com.redhat.lightblue.client.request.data.DataFindRequest;
+import com.redhat.lightblue.client.request.data.DataInsertRequest;
+import com.redhat.lightblue.rest.integration.LightblueRestTestHarness;
+import com.sun.net.httpserver.HttpServer;
+import org.apache.commons.io.IOUtils;
+import org.jboss.resteasy.plugins.server.sun.http.HttpContextBuilder;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,24 +28,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
-import org.apache.commons.io.IOUtils;
-import org.jboss.resteasy.plugins.server.sun.http.HttpContextBuilder;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.redhat.lightblue.client.Projection;
-import com.redhat.lightblue.client.Query;
-import com.redhat.lightblue.client.http.HttpMethod;
-import com.redhat.lightblue.client.integration.test.LightblueExternalResource;
-import com.redhat.lightblue.client.integration.test.LightblueExternalResource.LightblueTestMethods;
-import com.redhat.lightblue.client.request.data.DataFindRequest;
-import com.redhat.lightblue.client.request.data.DataInsertRequest;
-import com.redhat.lightblue.rest.integration.LightblueRestTestHarness;
-import com.sun.net.httpserver.HttpServer;
+import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadJsonNode;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class HealthCheckResourceTest {
 
@@ -136,7 +135,7 @@ public class HealthCheckResourceTest {
 
         String r = response(openConnection());
 
-        assertEquals("{\"status\":\"error\",\"message\":\"java.net.ConnectException: Connection refused\"}", r);
+        assertEquals("{[{\"status\":\"error\",\"message\":\" [client=lightblue-client error=java.net.ConnectException: Connection refused] \"}]}", r);
     }
 
     /**
