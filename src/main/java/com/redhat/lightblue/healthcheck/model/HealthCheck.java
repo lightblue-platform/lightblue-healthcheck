@@ -1,42 +1,53 @@
 package com.redhat.lightblue.healthcheck.model;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 public class HealthCheck {
 
-    private boolean hasFailures = false;
+    public static String SUCCESS = "success";
+    public static String ERROR = "error";
 
-    private Map<String, HealthCheckStatus> clientStatuses;
+    private boolean failed = false;
+    private String status;
+    private String message;
 
-    public boolean hasFailures() {
-        return hasFailures;
+    public String getMessage() {
+        return message;
     }
 
-    public void hasFailures(boolean hasFailures) {
-        this.hasFailures = hasFailures;
+
+    public HealthCheck withStatus(String status) {
+        this.status = status;
+        return this;
     }
 
-    public Map<String, HealthCheckStatus> getClientStatuses() {
-        return clientStatuses;
+    public HealthCheck withMessage(String message) {
+        this.message = message;
+        return this;
     }
 
-    public void setClientStatuses(Map<String, HealthCheckStatus> clientStatuses) {
-        this.clientStatuses = clientStatuses;
+    public HealthCheck withFailure(boolean failed) {
+        this.failed = failed;
+        return this;
     }
 
-    private synchronized Map<String, HealthCheckStatus> clientStatuses() {
-        if (null == this.clientStatuses) {
-            clientStatuses = new LinkedHashMap<>(1);
-        }
-        return this.clientStatuses;
+    public static HealthCheck success() {
+        return new HealthCheck()
+                .withStatus(SUCCESS)
+                .withFailure(false);
     }
 
-    public void addStatus(String client, HealthCheckStatus status) {
-        clientStatuses().put(client, status);
+    public static HealthCheck error(String message) {
+        return new HealthCheck()
+                .withStatus(ERROR)
+                .withFailure(true)
+                .withMessage(message);
     }
 
-    public void addStatuses(Map<String, HealthCheckStatus> clientStatues) {
-        clientStatuses().putAll(clientStatues);
+    public boolean failed() {
+        return failed;
     }
+
+    public void failed(boolean failed) {
+        this.failed = failed;
+    }
+
 }

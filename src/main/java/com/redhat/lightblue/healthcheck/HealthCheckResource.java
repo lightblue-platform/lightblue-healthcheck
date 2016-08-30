@@ -13,7 +13,6 @@ import com.redhat.lightblue.client.request.data.DataFindRequest;
 import com.redhat.lightblue.client.request.data.DataInsertRequest;
 import com.redhat.lightblue.client.request.data.DataUpdateRequest;
 import com.redhat.lightblue.healthcheck.model.HealthCheck;
-import com.redhat.lightblue.healthcheck.model.HealthCheckStatus;
 import com.redhat.lightblue.healthcheck.model.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,14 +23,17 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -46,6 +48,8 @@ public class HealthCheckResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(HealthCheckResource.class);
 
     private static final String ENTITY = "test";
+
+    private static final String CLIENT_ERROR_DELIMITER = " , ";
 
     private final Map<String, LightblueClient> lightblueClients;
     private final String hostname;
@@ -78,50 +82,55 @@ public class HealthCheckResource {
     @Path("/health")
     public Response health() {
 
-        HealthCheck healthCheck = new HealthCheck();
+        boolean oneOrMoreHealthChecksFailed = false;
+        List<HealthCheck> healthChecks = new ArrayList<>();
 
         for (Map.Entry<String,LightblueClient> client :  lightblueClients.entrySet()) {
 
-            HealthCheckStatus healthCheckStatus = checkHealth(client);
+            HealthCheck healthCheck = checkHealth(client.getKey(), client.getValue());
 
-            if(HealthCheckStatus.Status.error.name().equals(healthCheckStatus.getStatus().name())) {
-                healthCheck.hasFailures(true);
+            if(healthCheck.failed()) {
+                oneOrMoreHealthChecksFailed = true;
             }
-
-            healthCheck.addStatus(client.getKey(), checkHealth(client));
+            healthChecks.add(healthCheck);
         }
 
-        if (healthCheck.hasFailures()) {
-            StringBuffer errorMessages = new StringBuffer();
-            for(Map.Entry<String,HealthCheckStatus> healthCheckStatus : healthCheck.getClientStatuses().entrySet()) {
-                if(HealthCheckStatus.Status.error.name().equals(healthCheckStatus.getValue().getStatus().name())) {
-                    errorMessages.append(healthCheckStatus.getValue().getMessage());
-                }
-            }
-            return Response.status(javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR).entity(
-                    "{[" + errorMessages.toString() + "]}"
-            ).build();
-        } else {
-            return Response.status(javax.ws.rs.core.Response.Status.OK).entity(
-                "{\"status\":\"success\"}"
-            ).build();
-        }
+        return (oneOrMoreHealthChecksFailed ? getErrorResponse(healthChecks) : getSuccessResponse());
 
     }
 
-    private HealthCheckStatus checkHealth(Map.Entry<String,LightblueClient> client) {
+    private Response getSuccessResponse() {
+        return Response.status(Status.OK).entity(
+                "{\"status\":\"success\"}"
+        ).build();
+    }
+
+    private Response getErrorResponse(List<HealthCheck> healthChecks) {
+        StringBuffer errorMessages = new StringBuffer();
+        for(HealthCheck healthCheck : healthChecks) {
+            errorMessages.append(healthCheck.getMessage());
+            if(!errorMessages.toString().equals(healthCheck.getMessage())) {
+                errorMessages.append(CLIENT_ERROR_DELIMITER);
+            }
+        }
+        return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
+                "{\"status\":\"error\",\"message\":\"" + errorMessages.toString() + "\"}"
+        ).build();
+    }
+
+    private HealthCheck checkHealth(String clientName, LightblueClient client) {
 
         try {
             DataInsertRequest insertRequest = new DataInsertRequest(ENTITY);
             insertRequest.returns(Projection.includeField("_id"));
             insertRequest.create(new Test(hostname, "created"));
-            Test created = client.getValue().data(insertRequest, Test.class);
+            Test created = client.data(insertRequest, Test.class);
 
             assertNotNull(created);
             String uuid = created.get_id();
             assertNotNull(uuid);
 
-            Test found = find(client.getValue(), uuid);
+            Test found = find(client, uuid);
 
             assertNotNull(found);
             assertEquals(hostname, found.getHostname());
@@ -131,9 +140,9 @@ public class HealthCheckResource {
             updateRequest.where(Query.withValue("_id", Query.eq, uuid));
             updateRequest.returns(Projection.excludeFieldRecursively("*"));
             updateRequest.updates(Update.set("value", "updated"));
-            client.getValue().data(updateRequest);
+            client.data(updateRequest);
 
-            found = find(client.getValue(), uuid);
+            found = find(client, uuid);
 
             assertNotNull(found);
             assertEquals(hostname, found.getHostname());
@@ -151,17 +160,17 @@ public class HealthCheckResource {
                                             .toInstant()))
                     )
             );
-            client.getValue().data(deleteRequest);
+            client.data(deleteRequest);
 
-            assertNull(find(client.getValue(), uuid));
+            assertNull(find(client, uuid));
 
             LOGGER.debug("Health check passed.");
 
-            return new HealthCheckStatus(HealthCheckStatus.Status.success);
+            return new HealthCheck().success();
         } catch (Throwable e) {
             LOGGER.error("Health check failed.", e);
-            String errorMessage = " [client=" + client.getKey() + " error=" + e.getMessage() + "] ";
-            return new HealthCheckStatus(HealthCheckStatus.Status.error).withErrorMessage(errorMessage);
+            String errorMessage = " client=" + clientName + " error=" + e.getMessage() + " ";
+            return new HealthCheck().error(errorMessage);
         }
     }
 

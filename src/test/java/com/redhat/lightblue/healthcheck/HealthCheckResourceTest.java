@@ -135,7 +135,7 @@ public class HealthCheckResourceTest {
 
         String r = response(openConnection());
 
-        assertEquals("{[{\"status\":\"error\",\"message\":\" [client=lightblue-client error=java.net.ConnectException: Connection refused] \"}]}", r);
+        assertEquals("{\"status\":\"error\",\"message\":\" client=lightblue-client error=java.net.ConnectException: Connection refused \"}", r);
     }
 
     /**
