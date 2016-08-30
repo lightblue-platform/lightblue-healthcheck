@@ -1,13 +1,21 @@
 package com.redhat.lightblue.healthcheck;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.net.InetAddress;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
+import com.redhat.lightblue.client.LightblueClient;
+import com.redhat.lightblue.client.LightblueException;
+import com.redhat.lightblue.client.MongoExecution;
+import com.redhat.lightblue.client.MongoExecution.ReadPreference;
+import com.redhat.lightblue.client.Projection;
+import com.redhat.lightblue.client.Query;
+import com.redhat.lightblue.client.Update;
+import com.redhat.lightblue.client.http.LightblueHttpClient;
+import com.redhat.lightblue.client.request.data.DataDeleteRequest;
+import com.redhat.lightblue.client.request.data.DataFindRequest;
+import com.redhat.lightblue.client.request.data.DataInsertRequest;
+import com.redhat.lightblue.client.request.data.DataUpdateRequest;
+import com.redhat.lightblue.healthcheck.model.HealthCheck;
+import com.redhat.lightblue.healthcheck.model.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -16,24 +24,21 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.redhat.lightblue.client.Execution;
-import com.redhat.lightblue.client.LightblueClient;
-import com.redhat.lightblue.client.LightblueException;
-import com.redhat.lightblue.client.MongoExecution;
-import com.redhat.lightblue.client.Projection;
-import com.redhat.lightblue.client.Query;
-import com.redhat.lightblue.client.Update;
-import com.redhat.lightblue.client.MongoExecution.ReadPreference;
-import com.redhat.lightblue.client.http.LightblueHttpClient;
-import com.redhat.lightblue.client.request.data.DataDeleteRequest;
-import com.redhat.lightblue.client.request.data.DataFindRequest;
-import com.redhat.lightblue.client.request.data.DataInsertRequest;
-import com.redhat.lightblue.client.request.data.DataUpdateRequest;
-import com.redhat.lightblue.healthcheck.model.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -44,17 +49,77 @@ public class HealthCheckResource {
 
     private static final String ENTITY = "test";
 
-    private final LightblueClient client;
+    private static final String ERROR_RESPONSE_DELIMITER = " , ";
+
+    private final Map<String, LightblueClient> lightblueClients;
     private final String hostname;
 
     public HealthCheckResource() throws Exception {
-        client = new LightblueHttpClient();
+
+        lightblueClients = new LinkedHashMap<>();
+
+        //this config file contains one line for each lightblue client properties file that
+        // should be read in and used.
+        InputStream stream = this.getClass().getResourceAsStream("lightblue-clients.config");
+        if(null != stream) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+
+            String clientConfigFilePath;
+            while ((clientConfigFilePath = reader.readLine()) != null) {
+                lightblueClients.put(
+                        clientConfigFilePath.replace(".properties", ""),
+                        new LightblueHttpClient(clientConfigFilePath)
+                );
+            }
+        } else {
+            lightblueClients.put("lightblue-client", new LightblueHttpClient());
+        }
+
         hostname = InetAddress.getLocalHost().getHostName();
     }
 
     @GET
     @Path("/health")
     public Response health() {
+
+        boolean oneOrMoreHealthChecksFailed = false;
+        List<HealthCheck> healthChecks = new ArrayList<>();
+
+        for (Map.Entry<String,LightblueClient> client :  lightblueClients.entrySet()) {
+
+            HealthCheck healthCheck = checkHealth(client.getKey(), client.getValue());
+
+            if(healthCheck.failed()) {
+                oneOrMoreHealthChecksFailed = true;
+            }
+            healthChecks.add(healthCheck);
+        }
+
+        return (oneOrMoreHealthChecksFailed ? getErrorResponse(healthChecks) : getSuccessResponse());
+
+    }
+
+    private Response getSuccessResponse() {
+        return Response.status(Status.OK).entity(
+                "{\"status\":\"success\"}"
+        ).build();
+    }
+
+    private Response getErrorResponse(List<HealthCheck> healthChecks) {
+        StringBuffer errorMessages = new StringBuffer();
+        for(HealthCheck healthCheck : healthChecks) {
+            errorMessages.append(healthCheck.getMessage());
+            if(!errorMessages.toString().equals(healthCheck.getMessage())) {
+                errorMessages.append(ERROR_RESPONSE_DELIMITER);
+            }
+        }
+        return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
+                "{\"status\":\"error\",\"message\":\"" + errorMessages.toString() + "\"}"
+        ).build();
+    }
+
+    private HealthCheck checkHealth(String clientName, LightblueClient client) {
+
         try {
             DataInsertRequest insertRequest = new DataInsertRequest(ENTITY);
             insertRequest.returns(Projection.includeField("_id"));
@@ -65,7 +130,7 @@ public class HealthCheckResource {
             String uuid = created.get_id();
             assertNotNull(uuid);
 
-            Test found = find(uuid);
+            Test found = find(client, uuid);
 
             assertNotNull(found);
             assertEquals(hostname, found.getHostname());
@@ -77,7 +142,7 @@ public class HealthCheckResource {
             updateRequest.updates(Update.set("value", "updated"));
             client.data(updateRequest);
 
-            found = find(uuid);
+            found = find(client, uuid);
 
             assertNotNull(found);
             assertEquals(hostname, found.getHostname());
@@ -85,31 +150,31 @@ public class HealthCheckResource {
 
             DataDeleteRequest deleteRequest = new DataDeleteRequest(ENTITY);
             deleteRequest.where(
-                Query.or(
-                    Query.withValue("_id", Query.eq, uuid),
-                    Query.withValue("creationDate", Query.lte,
-                            Date.from(LocalDateTime
-                                    .now()
-                                    .minusMinutes(5)
-                                    .atZone(ZoneId.systemDefault())
-                                    .toInstant()))
-                )
+                    Query.or(
+                            Query.withValue("_id", Query.eq, uuid),
+                            Query.withValue("creationDate", Query.lte,
+                                    Date.from(LocalDateTime
+                                            .now()
+                                            .minusMinutes(5)
+                                            .atZone(ZoneId.systemDefault())
+                                            .toInstant()))
+                    )
             );
             client.data(deleteRequest);
 
-            assertNull(find(uuid));
+            assertNull(find(client, uuid));
 
             LOGGER.debug("Health check passed.");
-            return Response.status(Status.OK).entity(
-                    "{\"status\":\"success\"}").build();
+
+            return new HealthCheck().success();
         } catch (Throwable e) {
             LOGGER.error("Health check failed.", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
-                    "{\"status\":\"error\",\"message\":\"" + e.getMessage() + "\"}").build();
+            String errorMessage = " client=" + clientName + " error=" + e.getMessage() + " ";
+            return new HealthCheck().error(errorMessage);
         }
     }
 
-    private Test find(String uuid) throws LightblueException {
+    private Test find(LightblueClient client, String uuid) throws LightblueException {
         DataFindRequest findRequest = new DataFindRequest(ENTITY);
         findRequest.select(Projection.includeFieldRecursively("*"));
         findRequest.where(Query.withValue("_id", Query.eq, uuid));
