@@ -49,7 +49,7 @@ public class HealthCheckResource {
 
     private static final String ENTITY = "test";
 
-    private static final String CLIENT_ERROR_DELIMITER = " , ";
+    private static final String ERROR_RESPONSE_DELIMITER = " , ";
 
     private final Map<String, LightblueClient> lightblueClients;
     private final String hostname;
@@ -110,7 +110,7 @@ public class HealthCheckResource {
         for(HealthCheck healthCheck : healthChecks) {
             errorMessages.append(healthCheck.getMessage());
             if(!errorMessages.toString().equals(healthCheck.getMessage())) {
-                errorMessages.append(CLIENT_ERROR_DELIMITER);
+                errorMessages.append(ERROR_RESPONSE_DELIMITER);
             }
         }
         return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
