@@ -67,7 +67,7 @@ public class HealthCheckResource {
             String clientConfigFilePath;
             while ((clientConfigFilePath = reader.readLine()) != null) {
                 lightblueClients.put(
-                        clientConfigFilePath.replace(".properties", ""),
+                        new String(clientConfigFilePath).replace(".properties", ""),
                         new LightblueHttpClient(clientConfigFilePath)
                 );
             }
