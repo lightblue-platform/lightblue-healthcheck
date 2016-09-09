@@ -60,8 +60,6 @@ public class HealthCheckResource {
 
         //this config file contains one line for each lightblue client properties file that
         // should be read in and used.
-
-
         InputStream stream = this.getClass().getClassLoader().getResourceAsStream("lightblue-clients.config");
         if(null != stream) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
