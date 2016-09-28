@@ -1,5 +1,28 @@
 package com.redhat.lightblue.healthcheck;
 
+import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadJsonNode;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+
+import org.apache.commons.io.IOUtils;
+import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
+import org.jboss.resteasy.spi.ResteasyDeployment;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.client.Projection;
 import com.redhat.lightblue.client.Query;
@@ -9,35 +32,15 @@ import com.redhat.lightblue.client.integration.test.LightblueExternalResource.Li
 import com.redhat.lightblue.client.request.data.DataFindRequest;
 import com.redhat.lightblue.client.request.data.DataInsertRequest;
 import com.redhat.lightblue.rest.integration.LightblueRestTestHarness;
-import com.sun.net.httpserver.HttpServer;
-import org.apache.commons.io.IOUtils;
-import org.jboss.resteasy.plugins.server.sun.http.HttpContextBuilder;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-
-import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadJsonNode;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import io.undertow.Undertow;
+import io.undertow.servlet.api.DeploymentInfo;
 
 public class HealthCheckResourceTest {
 
     private final static int DEFAULT_PORT = 7000;
 
-    private static HttpServer httpServer;
+    private static UndertowJaxrsServer httpServer;
 
     @ClassRule
     public static LightblueExternalResource lightblue = new LightblueExternalResource(new LightblueTestMethods() {
@@ -52,20 +55,27 @@ public class HealthCheckResourceTest {
 
     @BeforeClass
     public static void startHttpServer() throws Exception {
-        httpServer = HttpServer.create(new InetSocketAddress(DEFAULT_PORT), 0);
+        ResteasyDeployment healthDeployment = new ResteasyDeployment();
+        healthDeployment.getActualResourceClasses().add(HealthCheckResource.class);
 
-        HttpContextBuilder dataContext = new HttpContextBuilder();
-        dataContext.getDeployment().getActualResourceClasses().add(HealthCheckResource.class);
-        dataContext.setPath("/rest/test");
-        dataContext.bind(httpServer);
+        Undertow.Builder builder = Undertow.builder()
+                .addHttpListener(DEFAULT_PORT, "localhost");
 
-        httpServer.start();
+        httpServer = new UndertowJaxrsServer();
+        httpServer.start(builder);
+
+        DeploymentInfo healthDeploymentInfo = httpServer.undertowDeployment(healthDeployment);
+        healthDeploymentInfo.setClassLoader(HealthCheckResourceTest.class.getClassLoader());
+        healthDeploymentInfo.setDeploymentName("health");
+        healthDeploymentInfo.setContextPath("/rest/test");
+
+        httpServer.deploy(healthDeploymentInfo);
     }
 
     @AfterClass
     public static void stopHttpServer() {
         if (httpServer != null) {
-            httpServer.stop(0);
+            httpServer.stop();
         }
         httpServer = null;
     }
