@@ -4,13 +4,13 @@
     <artifactId>oss-parent</artifactId>
     <version>7</version>
   </parent>
-  
+
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.redhat.lightblue.healthcheck</groupId>
   <artifactId>lightblue-healthcheck</artifactId>
   <version>1.4.0-SNAPSHOT</version>
   <packaging>war</packaging>
-  
+
   <licenses>
     <license>
       <name>GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007</name>
@@ -18,21 +18,21 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
-  
+
   <scm>
     <connection>scm:git:https://github.com/lightblue-platform/lightblue-healthcheck.git</connection>
     <developerConnection>scm:git:git@github.com:lightblue-platform/lightblue-healthcheck.git</developerConnection>
     <url>https://github.com/lightblue-platform/lightblue-healthcheck</url>
     <tag>HEAD</tag>
   </scm>
-  
+
   <distributionManagement>
     <repository>
       <id>ossrh</id>
       <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
     </repository>
   </distributionManagement>
-  
+
   <properties>
     <sonar.exclusions>**/*Test.java,**/*Exception.java</sonar.exclusions>
     <sonar.jdbc.url>jdbc:mysql://127.0.0.1:3306/sonar?useUnicode=true&amp;characterEncoding=utf8&amp;rewriteBatchedStatements=true</sonar.jdbc.url>
@@ -41,11 +41,11 @@
     <sonar.host.url>http://127.0.0.1:8080</sonar.host.url>
     <sonar.projectName>lightblue-healthcheck</sonar.projectName>
     <rpm.install.basedir>/usr/share/jbossas/standalone/deployments</rpm.install.basedir>
-  
-    <lightblue-client.version>5.5.0-SNAPSHOT</lightblue-client.version>
-    
+
+    <lightblue-client.version>5.4.0</lightblue-client.version>
+
   </properties>
-  
+
   <dependencies>
     <dependency>
       <groupId>com.redhat.lightblue.client</groupId>
@@ -57,14 +57,14 @@
       <artifactId>junit</artifactId>
       <version>4.12</version>
     </dependency>
-    
+
     <dependency>
       <groupId>org.jboss.resteasy</groupId>
       <artifactId>resteasy-jaxrs</artifactId>
       <version>2.3.7.Final</version>
       <scope>provided</scope>
     </dependency>
-    
+
     <dependency>
       <groupId>com.redhat.lightblue.client</groupId>
       <artifactId>lightblue-client-integration-test</artifactId>
@@ -78,7 +78,7 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  
+
   <build>
     <plugins>
       <plugin>
@@ -117,7 +117,7 @@
       </plugin>
     </plugins>
   </build>
-  
+
   <profiles>
     <profile>
       <id>wildfly</id>
@@ -270,5 +270,5 @@
       </plugin>
     </plugins>
   </reporting>
-  
+
 </project>
