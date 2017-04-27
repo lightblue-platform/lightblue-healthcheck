@@ -4,6 +4,7 @@ import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadJsonNode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +29,7 @@ import com.redhat.lightblue.client.Projection;
 import com.redhat.lightblue.client.Query;
 import com.redhat.lightblue.client.http.HttpMethod;
 import com.redhat.lightblue.client.integration.test.LightblueExternalResource;
-import com.redhat.lightblue.client.integration.test.LightblueExternalResource.LightblueTestMethods;
+import com.redhat.lightblue.client.integration.test.LightblueExternalResource.LightblueTestHarnessConfig;
 import com.redhat.lightblue.client.request.data.DataFindRequest;
 import com.redhat.lightblue.client.request.data.DataInsertRequest;
 import com.redhat.lightblue.rest.integration.LightblueRestTestHarness;
@@ -43,7 +44,7 @@ public class HealthCheckResourceTest {
     private static UndertowJaxrsServer httpServer;
 
     @ClassRule
-    public static LightblueExternalResource lightblue = new LightblueExternalResource(new LightblueTestMethods() {
+    public static LightblueExternalResource lightblue = new LightblueExternalResource(new LightblueTestHarnessConfig() {
 
         @Override
         public JsonNode[] getMetadataJsonNodes() throws Exception {
@@ -145,7 +146,7 @@ public class HealthCheckResourceTest {
 
         String r = response(openConnection());
 
-        assertEquals("{\"status\":\"error\",\"message\":\" client=lightblue-client error=java.net.ConnectException: Connection refused \"}", r);
+        assertTrue(r.contains("Connection refused"));
     }
 
     /**
