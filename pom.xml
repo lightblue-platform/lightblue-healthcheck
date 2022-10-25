@@ -8,7 +8,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.redhat.lightblue.healthcheck</groupId>
   <artifactId>lightblue-healthcheck</artifactId>
-  <version>1.5.0-SNAPSHOT</version>
+  <version>1.5.0</version>
   <packaging>war</packaging>
 
   <licenses>
@@ -23,7 +23,7 @@
     <connection>scm:git:https://github.com/lightblue-platform/lightblue-healthcheck.git</connection>
     <developerConnection>scm:git:git@github.com:lightblue-platform/lightblue-healthcheck.git</developerConnection>
     <url>https://github.com/lightblue-platform/lightblue-healthcheck</url>
-    <tag>HEAD</tag>
+    <tag>V1.5.0</tag>
   </scm>
 
   <distributionManagement>
